@@ -10,8 +10,6 @@ var addAlbumsToPage = function(albums){
   
   albums.albums.items.forEach(function(album){
 
-    console.log(album);
-    
     var title = document.createElement('div');
     title.innerText = "Album: " + album.name;
     albumListing.appendChild(title);
@@ -25,43 +23,39 @@ var addAlbumsToPage = function(albums){
     var coverImage = document.createElement('img');
     coverImage.src = album.images[0].url;
     coverImage.width = 100;
-    albumListing.appendChild(coverImage);    
-  })
+    albumListing.appendChild(coverImage);
 
+    coverImage.onclick = function(){
+      var albumURL = "https://api.spotify.com/v1/albums/" + album.id 
+      makeRequest(albumURL, trackRequestComplete)
+    } 
+  })
 }
 
+var playMusic = function(albumString){
+  audio = document.querySelector('audio')
+  audio.src = albumString.tracks.items[0].preview_url;
+} 
+
+var trackRequestComplete = function(){
+  if (this.status !== 200) return;
+  var jsonString = this.responseText;
+  var albumString = JSON.parse(jsonString);
+  playMusic(albumString)
+}
 
 var requestComplete = function(){
-  //check we get a http status 200
-
   if (this.status !== 200) return;
-
-  //grab the response text
   var jsonString = this.responseText;
-
-  //now parse the string into JSON string
   var albums = JSON.parse(jsonString);
-    //hand off responsibility to another function to parse the list and put it into our webpage
- addAlbumsToPage(albums);
-
+  addAlbumsToPage(albums);
 }
-
-
 
 var makeRequest = function(url, callback){
-  //create a new XMLHttpRequest object
   var request = new XMLHttpRequest();
-
-  //we are going to GET data 
   request.open("GET", url);
-
-  //tell it what function to run once complete - register the event handler
-  request.onload = callback; //.this (in this case) is the request object
-
-  //send request
+  request.onload = callback;
   request.send();
 }
-
-
 
 window.onload = app;
